@@ -9,17 +9,27 @@ using System.Threading.Tasks;
 
 namespace TCPChatroomClient
 {
-    internal class ClientConnection
+    public class ClientConnection
     {
         public string Host;
         public int Port;
         public TcpClient Client;
         public NetworkStream Stream;
         
+        public ClientConnection()
+        {
+            this.Host = "localhost";
+            this.Port = 0; 
+        }
+
         public ClientConnection(string host, int port)
         {
             this.Host = host;
             this.Port = port;
+        }
+
+        public void StartConnection()
+        {
             try
             {
                 Client = new TcpClient(Host, Port);
@@ -30,5 +40,11 @@ namespace TCPChatroomClient
                 Debug.WriteLine($"Could not connect! Error: {ex}");
             }
         }
+
+        public void StopConnection()
+        {
+
+        }
+
     }
 }

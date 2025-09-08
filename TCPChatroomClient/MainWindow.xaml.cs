@@ -16,9 +16,12 @@ namespace TCPChatroomClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        public ClientConnection _connection;
+
         public MainWindow()
         {
             InitializeComponent();
+            _connection = new ClientConnection();
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
@@ -26,6 +29,8 @@ namespace TCPChatroomClient
             ServerConnectWindow serverConnectWindow = new ServerConnectWindow();
             serverConnectWindow.Owner = this;
             serverConnectWindow.ShowDialog();
+
+            //Change ConnectBtn to DisconnectBtn
         }
     }
 }
