@@ -32,5 +32,10 @@ namespace TCPChatroomClient
 
             //Change ConnectBtn to DisconnectBtn
         }
+
+        private void SendBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -7,14 +7,14 @@
         mc:Ignorable="d"
         WindowStyle="None"
         WindowStartupLocation="CenterOwner"
-        Title="ServerConnectWindow" Height="100" Width="300">
+        Title="ServerConnectWindow" Height="150" Width="300">
     <Grid>
-        <Label Content="Host IP Address:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0"></Label>
-        <TextBox Name="IpText" Height="20" Width="150" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="130,16,0,0"></TextBox>
+        <Label Content="Host IP Address:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,27,0,0"></Label>
+        <TextBox Name="IpText" Height="20" Width="150" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="130,30,0,0"></TextBox>
 
-        <Label Content="Port:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,40,0,0"></Label>
-        <TextBox Name="PortText" Height="20" Width="150" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="130,46,0,0"></TextBox>
+        <Label Content="Port:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,57,0,0"></Label>
+        <TextBox Name="PortText" Height="20" Width="150" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="130,60,0,0"></TextBox>
 
-        <Button Name="ConnectBtn" Content="Connect" Height="20" Width="265" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,5,5" Click="ConnectBtn_Click"></Button>
+        <Button Name="ConnectBtn" Content="Connect" Height="20" Width="265" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,5,30" Click="ConnectBtn_Click"></Button>
     </Grid>
 </Window>

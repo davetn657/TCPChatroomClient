@@ -11,10 +11,10 @@ namespace TCPChatroomClient
 {
     public class ClientConnection
     {
-        public string Host;
-        public int Port;
-        public TcpClient Client;
-        public NetworkStream Stream;
+        private string Host;
+        private int Port;
+        private TcpClient Client;
+        private NetworkStream Stream;
         
         public ClientConnection()
         {
@@ -22,9 +22,13 @@ namespace TCPChatroomClient
             this.Port = 0; 
         }
 
-        public ClientConnection(string host, int port)
+        public void SetHost(string host)
         {
             this.Host = host;
+        }
+
+        public void SetPort(int port)
+        {
             this.Port = port;
         }
 
@@ -34,6 +38,7 @@ namespace TCPChatroomClient
             {
                 Client = new TcpClient(Host, Port);
                 Stream = Client.GetStream();
+                
             }
             catch (Exception ex)
             {
@@ -43,8 +48,14 @@ namespace TCPChatroomClient
 
         public void StopConnection()
         {
+            try
+            {
 
+            }
+            catch (Exception ex ) 
+            {
+
+            }
         }
-
     }
 }

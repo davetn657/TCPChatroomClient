@@ -20,27 +20,39 @@ namespace TCPChatroomClient
     /// </summary>
     public partial class ServerConnectWindow : Window
     {
-        MessageBoxButton _button = MessageBoxButton.OK;
-        MessageBoxImage _icon = MessageBoxImage.Warning;
-        MessageBoxResult _result;
-        
-        string _messageBoxText = string.Empty;
-        string _captionText = string.Empty;
+        private MessageBoxButton _button = MessageBoxButton.OK;
+        private MessageBoxImage _icon = MessageBoxImage.Warning;
+        private MessageBoxResult _result;
+        private string _messageBoxText = string.Empty;
+        private string _captionText = string.Empty;
 
         public ServerConnectWindow()
         {
             InitializeComponent();
-
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
             string host = IpText.Text;
-            string port = PortText.Text;
+            int port;
+
+            try
+            {
+                Int32.TryParse(PortText.Text, out port);
+            }
+            catch (FormatException ex)
+            {
+                throw new FormatException("Could not convert port to int");
+            }
+
 
             if (CheckValidIP(host) && CheckValidPort(port))
             {
-
+                MainWindow mainWindow = this.Owner as MainWindow; 
+                mainWindow._connection.SetHost(host);
+                mainWindow._connection.SetPort(port);
+                mainWindow._connection.StartConnection();
+                this.Close();
             }
             
         }
@@ -59,12 +71,9 @@ namespace TCPChatroomClient
             return false;
         }
 
-        private bool CheckValidPort(string port)
+        private bool CheckValidPort(int port)
         {
-            int portInt;
-            Int32.TryParse(port, out portInt);
-
-            if(portInt > 40000 &&  portInt < 45000)
+            if(port > 40000 &&  port < 45000)
             {
                 return true;
             }
