@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Net.Sockets;
+using System.Xml.Linq;
 
 namespace TCPChatroomClient
 {
-    class ClientData
+    public class ClientData
     {
         public string Name { get; set; }
         public TcpClient Client { get; set; }
@@ -13,29 +15,48 @@ namespace TCPChatroomClient
         public ClientData()
         {
             this.Name = string.Empty;
+            this.Client = new TcpClient();
+            this.ClientStream = this.Client.GetStream();
+            this.MessageHandler = new MessageHandler(this);
         }
 
-        public ClientData(string name, TcpClient client, NetworkStream stream, MessageHandler messageHandler)
+        public ClientData(string name, TcpClient client, NetworkStream stream)
         {
             this.Name = name;
             this.Client = client;
             this.ClientStream = stream;
-            this.MessageHandler = messageHandler;
+            this.MessageHandler = new MessageHandler(this);
         }
 
-        public ClientData(string name) { this.Name = name; }
+        public ClientData(string name) 
+        {
+            this.Name = name;
+            this.Client = new TcpClient();
+            this.ClientStream = this.Client.GetStream();
+            this.MessageHandler = new MessageHandler(this);
+        }
+
+        public async Task ConnectClient(string host, int port)
+        {
+            try
+            {
+                Client = new TcpClient(host, port);
+                ClientStream = Client.GetStream();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Could not connect! Error: {ex}");
+            }
+        }
 
         //CLIENT DISCONNECTION
-        public async Task DisconnectClient()
+        public void DisconnectClient()
         {
             try
             {
                 this.MessageHandler.StopWaitUserMessage();
 
                 this.ClientStream?.Close();
-                this.Client?.Close();
-
-                await MessageHandler.SendMessage(this, MessageHandler.DisconnectMessage);
             }
             catch (Exception ex)
             {

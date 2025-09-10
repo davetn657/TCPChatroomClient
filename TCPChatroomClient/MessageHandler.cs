@@ -8,49 +8,41 @@ using System.Threading.Tasks;
 
 namespace TCPChatroomClient
 {
-    internal class MessageHandler
+    public class MessageHandler
     {
         private ClientData ServerData;
+        private ClientData UserData;
         private CancellationTokenSource CancelTokenSource;
         private CancellationToken CancelToken;
 
         //Message Identification
-        public readonly string ServerCommand = "SERVERCOMMAND";
-        public readonly string ServerMessage = "SERVERMESSAGE";
-        public readonly string UserMessage = "USERMESSAGE";
+        private const string ServerMessage = "SERVERMESSAGE";
+        private const string UserMessage = "USERMESSAGE";
 
-        public readonly string DisconnectMessage = "DISCONNECT";
-        public readonly string NameTakenMessage = "NAME TAKEN";
-        public readonly string UserConnectedMessage = "CONNECTED";
-        public readonly string ServerCapacityMessage = "SERVER AT CAPACITY";
-        public readonly string MessageFailedMessage = "MESSAGE FAILED TO SEND";
+        private const string DisconnectMessage = "DISCONNECTED";
+        private const string NameTakenMessage = "NAME TAKEN";
+        private const string UserConnectedMessage = "CONNECTED";
+        private const string ServerCapacityMessage = "SERVER AT CAPACITY";
+        private const string MessageFailedMessage = "MESSAGE FAILED TO SEND";
 
 
-        public MessageHandler()
+        public MessageHandler(ClientData userData)
         {
+
+            this.UserData = userData;
             this.ServerData = new ClientData("Server");
             CancelTokenSource = new CancellationTokenSource();
             CancelToken = CancelTokenSource.Token;
         }
 
         //MESSAGES
-        public async Task WaitUserMessage(ClientData user)
+        public async Task WaitUserMessage()
         {
             while (!CancelTokenSource.IsCancellationRequested)
             {
                 try
                 {
-                    MessageData receivedMessage = await ReceiveMessage(user);
-
-                    if (receivedMessage.MessageType == ServerCommand && receivedMessage.Message == DisconnectMessage)
-                    {
-                        await user.DisconnectClient();
-                        break;
-                    }
-                    else if (receivedMessage.MessageType == UserMessage)
-                    {
-                        //Display new message in chatlog
-                    }
+                    MessageData receivedMessage = await ReceiveMessage();
                 }
                 catch (Exception ex)
                 {
@@ -59,12 +51,12 @@ namespace TCPChatroomClient
             }
         }
 
-        public async Task<MessageData> ReceiveMessage(ClientData user)
+        public async Task<MessageData> ReceiveMessage()
         {
             try
             {
                 byte[] data = new byte[1024];
-                Int32 bytes = await user.ClientStream.ReadAsync(data, 0, data.Length, CancelToken);
+                Int32 bytes = await UserData.ClientStream.ReadAsync(data, 0, data.Length, CancelToken);
                 MessageData message = new MessageData();
 
                 message = message.Deserialize(data, bytes);
@@ -74,27 +66,35 @@ namespace TCPChatroomClient
             catch (IOException ex)
             {
                 Debug.WriteLine($"Error: {ex.Message} \n");
-                await user.DisconnectClient();
+                UserData.DisconnectClient();
                 return null;
             }
         }
 
-        public async Task SendMessage(ClientData user, string message)
+        public async Task SendMessage(string message)
         {
             MessageData data;
 
-            if (message == DisconnectMessage)
-            {
-                data = new MessageData(ServerCommand, user, message);
-            }
-            else
-            {
-                data = new MessageData(UserMessage, user, message);
-            }
+            data = new MessageData(UserMessage, UserData, message);
 
             byte[] messageToSend = data.Serialize();
 
-            await user.ClientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
+            await UserData.ClientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
+        }
+
+        public async Task SendDisconnect()
+        {
+            await this.SendMessage(DisconnectMessage);
+        }
+
+        public bool CheckServerMessage(MessageData message)
+        {
+            if(message.MessageType == ServerMessage)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public void StopWaitUserMessage()

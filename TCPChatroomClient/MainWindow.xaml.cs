@@ -16,12 +16,12 @@ namespace TCPChatroomClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ClientConnection _connection;
+        public ClientData _clientData;
 
         public MainWindow()
         {
             InitializeComponent();
-            _connection = new ClientConnection();
+            _clientData = new ClientData();
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)

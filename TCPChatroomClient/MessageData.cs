@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace TCPChatroomClient
 {
-    class MessageData
+    public class MessageData
     {
         //messagedata needs:
         //  FROM: who the message is from
