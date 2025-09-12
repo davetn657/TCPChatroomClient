@@ -30,7 +30,7 @@ namespace TCPChatroomClient
             InitializeComponent();
         }
 
-        private async void ConnectBtn_Click(object sender, RoutedEventArgs e)
+        private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
             string host = IpText.Text;
             string portText = PortText.Text;
@@ -58,8 +58,8 @@ namespace TCPChatroomClient
 
             string messageBoxText = "Host is not valid! Try this format (127.0.0.1)";
             string captionText = "Invalid Host";
+            ThrowPopup(messageBoxText, captionText);
 
-            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
             return false;
         }
 
@@ -74,9 +74,14 @@ namespace TCPChatroomClient
 
             string messageBoxText = "Port is invalid! Try a number between 40000 - 45000";
             string captionText = "Invalid Port";
+            ThrowPopup(messageBoxText, captionText);
 
-            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
             return false;
+        }
+
+        public void ThrowPopup(string messageBoxText, string captionText)
+        {
+            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
         }
 
         private void TryConnection(IPAddress host, int port)
@@ -88,7 +93,6 @@ namespace TCPChatroomClient
                 if (mainWindow != null)
                 {
                     mainWindow.StartConnection(host, port);
-                    //Task.Run(() => mainWindow.CheckServerCapacity());
                 }
                 else
                 {

@@ -29,6 +29,7 @@ namespace TCPChatroomClient
         private MessageBoxResult _result;
 
         ServerConnectWindow serverConnectWindow = new ServerConnectWindow();
+        UsernameSelectWindow userSelectWindow = new UsernameSelectWindow();
 
         public MainWindow()
         {
@@ -57,12 +58,42 @@ namespace TCPChatroomClient
             if(await CheckServerCapacity())
             {
                 //start loop to recieve messages
+                DisplayAllUsers();
                 await WaitMessageLoop();
             }
-
+            else
+            {
+                //throw popup that server is at capactiy
+            }
 
         }
-        public async Task WaitMessageLoop()
+
+        private async Task<bool> CheckServerCapacity()
+        {
+            MessageData message = await _handler.ReceiveMessage();
+
+            //Message will be either a UserMessage or a ServerMessage
+            //at this stage if it is a ServerMessage it can only be a MaxCapacity Message
+            if (message.message == ServerCommands.joinedServerMessage)
+            {
+                userSelectWindow.Owner = this;
+                userSelectWindow.ShowDialog();
+                serverConnectWindow.Close();
+                return true;
+            }
+            else
+            {
+                //User will not be able to connect to the server so remove it from the stream and allow the user to try to connect rto a different server
+                _clientData.DisconnectClient();
+
+                string messageBoxText = "Could not connect because server is full!";
+                string captionText = "Server if full!";
+                serverConnectWindow.ThrowPopup(messageBoxText, captionText);
+                return false;
+            }
+        }
+
+        private async Task WaitMessageLoop()
         {
             while (true)
             {
@@ -85,36 +116,37 @@ namespace TCPChatroomClient
             switch (message)
             {
                 case ServerCommands.disconnectMessage:
+                    _clientData.DisconnectClient();
                     break;
-
+                case ServerCommands.nameTakenMessage:
+                    //throw messagebox on username select screen
+                    if (userSelectWindow.IsActive)
+                    {
+                        userSelectWindow.TryDifferentNamePopUp();
+                    }
+                    break;
+                case ServerCommands.nameConfirmMessage:
+                    //allow username select screen to continue
+                    break;
+                case ServerCommands.messageFailedMessage:
+                    //throw messagebox that tells user could not send their message
+                    break;
+                default:
+                    Debug.WriteLine("Something failed server side");
+                    break;
             }
         }
 
-        public async Task<bool> CheckServerCapacity()
+        private async void DisplayAllUsers()
         {
             MessageData message = await _handler.ReceiveMessage();
+            string allUser = message.message;
+            string[] users = allUser.Split(',');
 
-            //Message will be either a UserMessage or a ServerMessage
-            //at this stage if it is a ServerMessage it can only be a MaxCapacity Message
-            if (message.message == ServerCommands.joinedServerMessage)
+            foreach (string user in users)
             {
-                UsernameSelectWindow userSelectWindow = new UsernameSelectWindow();
-                userSelectWindow.Owner = this;
-                userSelectWindow.ShowDialog();
-                serverConnectWindow.Close();
-                return true;
-            }
-            else
-            {
-                //User will not be able to connect to the server so remove it from the stream and allow the user to try to connect rto a different server
-                _clientData.DisconnectClient();
-
-                string messageBoxText = "Could not connect because server is full!";
-                string captionText = "Server if full!";
-                _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.Yes);
-                return false;
+                ConnectedUsers.Text += $"{user}\n";
             }
         }
-
     }
 }
