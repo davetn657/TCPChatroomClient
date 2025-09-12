@@ -11,6 +11,7 @@ namespace TCPChatroomClient
         //Message Identification
         public const string serverMessage = "SERVERMESSAGE";
         public const string userMessage = "USERMESSAGE";
+        public const string userCommand = "USERCOMMAND";
 
         public const string disconnectMessage = "DISCONNECTED";
         public const string userConnectedMessage = "CONNECTED";
@@ -19,5 +20,7 @@ namespace TCPChatroomClient
         public const string serverCapacityMessage = "SERVER AT CAPACITY";
         public const string joinedServerMessage = "JOINED SERVER";
         public const string messageFailedMessage = "MESSAGE FAILED TO SEND";
+        public const string sendingAllConnectedMessage = "SENDING CONNECTED USERS";
+        public const string acceptAllConnectedMessage = "ACCEPTED CONNECTED USERS";
     }
 }

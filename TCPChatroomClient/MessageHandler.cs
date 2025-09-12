@@ -50,6 +50,14 @@ namespace TCPChatroomClient
             await userData.clientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
         }
 
+        public async Task SendUserCommand(string message)
+        {
+            MessageData data = new MessageData(ServerCommands.userMessage, ServerCommands.userCommand, message);
+            byte[] messageToSend = data.Serialize();
+
+            await userData.clientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
+        }
+
         public async Task SendDisconnect()
         {
             await this.SendMessage(ServerCommands.disconnectMessage);

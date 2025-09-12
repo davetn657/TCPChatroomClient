@@ -27,6 +27,10 @@ namespace TCPChatroomClient
         ServerConnectWindow serverConnectWindow = new ServerConnectWindow();
         UsernameSelectWindow userSelectWindow = new UsernameSelectWindow();
 
+        private MessageBoxButton _button = MessageBoxButton.OK;
+        private MessageBoxImage _warningIcon = MessageBoxImage.Warning;
+        private MessageBoxResult _result;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -51,7 +55,7 @@ namespace TCPChatroomClient
         public async Task<bool> StartConnection(IPAddress host, int port)
         {
             await _clientData.ConnectClient(host, port);
-            await _handler.SendMessage(ServerCommands.userConnectedMessage);
+            await _handler.SendUserCommand(ServerCommands.userConnectedMessage);
 
             MessageData messageData = await _handler.ReceiveMessage();
 
@@ -64,6 +68,11 @@ namespace TCPChatroomClient
             {
                 return false;
             }
+        }
+
+        public async Task StartMessageLoop()
+        {
+            await WaitMessageLoop();
         }
 
         private async Task WaitMessageLoop()
@@ -107,8 +116,15 @@ namespace TCPChatroomClient
 
                 case ServerCommands.messageFailedMessage:
                     //throw messagebox that tells user could not send their message
+                    string messageBoxText = "Message could not send! Try again";
+                    string captionText = "Message Send Failed!";
+                    _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
                     break;
 
+                case ServerCommands.sendingAllConnectedMessage:
+                    DisplayAllUsers();
+                    Task.Run(() => _handler.SendUserCommand(ServerCommands.acceptAllConnectedMessage));
+                    break;
                 default:
                     Debug.WriteLine("Something failed server side");
                     break;
@@ -116,7 +132,7 @@ namespace TCPChatroomClient
         }
         public async Task<bool> TryUsername(string username)
         {
-            await _handler.SendMessage(username);
+            await _handler.SendUserCommand(username);
             MessageData messageData = await _handler.ReceiveMessage();
 
             if (messageData.message == ServerCommands.nameConfirmMessage)
