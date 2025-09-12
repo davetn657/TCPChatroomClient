@@ -10,86 +10,56 @@ namespace TCPChatroomClient
 {
     public class MessageHandler
     {
-        private ClientData ServerData;
-        private ClientData UserData;
-        private CancellationTokenSource CancelTokenSource;
-        private CancellationToken CancelToken;
-
-        //Message Identification
-        private const string ServerMessage = "SERVERMESSAGE";
-        private const string UserMessage = "USERMESSAGE";
-
-        private const string DisconnectMessage = "DISCONNECTED";
-        private const string NameTakenMessage = "NAME TAKEN";
-        private const string UserConnectedMessage = "CONNECTED";
-        private const string ServerCapacityMessage = "SERVER AT CAPACITY";
-        private const string MessageFailedMessage = "MESSAGE FAILED TO SEND";
-
+        private ClientData userData;
+        private CancellationTokenSource cancelTokenSource;
+        private CancellationToken cancelToken;
 
         public MessageHandler(ClientData userData)
         {
-
-            this.UserData = userData;
-            this.ServerData = new ClientData("Server");
-            CancelTokenSource = new CancellationTokenSource();
-            CancelToken = CancelTokenSource.Token;
+            this.userData = userData;
+            cancelTokenSource = new CancellationTokenSource();
+            cancelToken = cancelTokenSource.Token;
         }
 
         //MESSAGES
-        public async Task WaitUserMessage()
-        {
-            while (!CancelTokenSource.IsCancellationRequested)
-            {
-                try
-                {
-                    MessageData receivedMessage = await ReceiveMessage();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error: {ex.Message}");
-                }
-            }
-        }
-
         public async Task<MessageData> ReceiveMessage()
         {
             try
             {
                 byte[] data = new byte[1024];
-                Int32 bytes = await UserData.ClientStream.ReadAsync(data, 0, data.Length, CancelToken);
+                Int32 bytes = await userData.clientStream.ReadAsync(data, 0, data.Length, cancelToken);
                 MessageData message = new MessageData();
 
                 message = message.Deserialize(data, bytes);
+
+                Debug.WriteLine(message.message);
 
                 return message;
             }
             catch (IOException ex)
             {
                 Debug.WriteLine($"Error: {ex.Message} \n");
-                UserData.DisconnectClient();
+                userData.DisconnectClient();
                 return null;
             }
         }
 
         public async Task SendMessage(string message)
         {
-            MessageData data;
-
-            data = new MessageData(UserMessage, UserData, message);
-
+            MessageData data = new MessageData(ServerCommands.userMessage, userData, message);
             byte[] messageToSend = data.Serialize();
 
-            await UserData.ClientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
+            await userData.clientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
         }
 
         public async Task SendDisconnect()
         {
-            await this.SendMessage(DisconnectMessage);
+            await this.SendMessage(ServerCommands.disconnectMessage);
         }
 
-        public bool CheckServerMessage(MessageData message)
+        public bool CheckMessageType(MessageData message)
         {
-            if(message.MessageType == ServerMessage)
+            if(message.messageType == ServerCommands.serverMessage)
             {
                 return true;
             }
@@ -99,8 +69,8 @@ namespace TCPChatroomClient
 
         public void StopWaitUserMessage()
         {
-            CancelTokenSource.Cancel();
-            CancelTokenSource.Dispose();
+            cancelTokenSource.Cancel();
+            cancelTokenSource.Dispose();
         }
     }
 }

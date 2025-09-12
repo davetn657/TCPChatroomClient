@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -23,6 +24,7 @@ namespace TCPChatroomClient
         private MessageBoxButton _button = MessageBoxButton.OK;
         private MessageBoxImage _warningIcon = MessageBoxImage.Warning;
         private MessageBoxResult _result;
+
         public ServerConnectWindow()
         {
             InitializeComponent();
@@ -31,23 +33,19 @@ namespace TCPChatroomClient
         private async void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
             string host = IpText.Text;
-            int port;
+            string portText = PortText.Text;
 
-            try
+            if (CheckValidIP(host) && CheckValidPort(portText))
             {
-                Int32.TryParse(PortText.Text, out port);
+                try
+                {
+                    TryConnection(IPAddress.Parse(host), Int32.Parse(portText));
+                }
+                catch (FormatException ex)
+                {
+                    Console.WriteLine($"Error: Could not convert port to int\n{ex.Message}");
+                }
             }
-            catch (FormatException ex)
-            {
-                throw new FormatException("Could not convert port to int");
-            }
-
-
-            if (CheckValidIP(host) && CheckValidPort(port))
-            {
-                await TryConnection(host, port);
-            }
-            
         }
 
         private bool CheckValidIP(string host)
@@ -61,13 +59,15 @@ namespace TCPChatroomClient
             string messageBoxText = "Host is not valid! Try this format (127.0.0.1)";
             string captionText = "Invalid Host";
 
-            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.Yes);
+            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
             return false;
         }
 
-        private bool CheckValidPort(int port)
+        private bool CheckValidPort(string portText)
         {
-            if(port > 40000 &&  port < 45000)
+            int port = 0;
+
+            if(Int32.TryParse(portText, out port) && (port > 40000 && port < 45000))
             {
                 return true;
             }
@@ -75,42 +75,26 @@ namespace TCPChatroomClient
             string messageBoxText = "Port is invalid! Try a number between 40000 - 45000";
             string captionText = "Invalid Port";
 
-            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.Yes);
+            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
             return false;
         }
 
-        private async Task TryConnection(string host, int port)
+        private void TryConnection(IPAddress host, int port)
         {
             try
             {
+                MainWindow? mainWindow = Owner as MainWindow;
 
-                MainWindow mainWindow = this.Owner as MainWindow;
-                ClientData clientData = mainWindow._clientData;
-                MessageHandler messageHandler = clientData.MessageHandler;
-
-                if (mainWindow != null) {
-                    await clientData.ConnectClient(host, port);
-                    MessageData message = await messageHandler.ReceiveMessage();
-
-                    //Message will be either a UserMessage or a ServerMessage
-                    //at this stage if it is a ServerMessage it can only be a MaxCapacity Message
-                    if (messageHandler.CheckServerMessage(message))
-                    {
-                        //User will not be able to connect to the server so remove it from the stream and allow the user to try to connect rto a different server
-                        clientData.DisconnectClient();
-
-                        string messageBoxText = "Could not connect because server is full!";
-                        string captionText = "Server if full!";
-                        _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.Yes);
-                    }
-                    else
-                    {
-                        UsernameSelectWindow userSelectWindow = new UsernameSelectWindow();
-                        userSelectWindow.Owner = this.Owner;
-                        userSelectWindow.ShowDialog();
-                        this.Close();
-                    }
+                if (mainWindow != null)
+                {
+                    mainWindow.StartConnection(host, port);
+                    //Task.Run(() => mainWindow.CheckServerCapacity());
                 }
+                else
+                {
+                    Debug.WriteLine("main is null");
+                }
+                
             }
             catch (Exception ex)
             {
