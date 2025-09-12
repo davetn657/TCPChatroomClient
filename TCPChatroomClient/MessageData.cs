@@ -10,21 +10,22 @@ namespace TCPChatroomClient
         //  FROM: who the message is from
         //  ID: The ID of who the message is from (this will be null on the first sent message)
         //  MESSAGE: the contents of what the user sent
-        public ClientData from { get; set; }
+        public string from { get; set; }
         public string message { get; set; }
         public string messageType { get; set; }
 
         public MessageData()
         {
-            this.from = new ClientData();
+            this.from = string.Empty;
             this.message = string.Empty;
+            this.messageType = string.Empty;
         }
 
-        public MessageData(string messageType, ClientData from, string message)
+        public MessageData(string messageType, string from, string message)
         {
-            this.messageType = messageType;
             this.from = from;
             this.message = message;
+            this.messageType = messageType;
         }
 
         public byte[] Serialize()

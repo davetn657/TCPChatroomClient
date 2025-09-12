@@ -30,7 +30,7 @@ namespace TCPChatroomClient
             InitializeComponent();
         }
 
-        private void ConnectBtn_Click(object sender, RoutedEventArgs e)
+        private async void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
             string host = IpText.Text;
             string portText = PortText.Text;
@@ -39,7 +39,7 @@ namespace TCPChatroomClient
             {
                 try
                 {
-                    TryConnection(IPAddress.Parse(host), Int32.Parse(portText));
+                    await TryConnection(IPAddress.Parse(host), Int32.Parse(portText));
                 }
                 catch (FormatException ex)
                 {
@@ -51,7 +51,7 @@ namespace TCPChatroomClient
         private bool CheckValidIP(string host)
         {
 
-            if (IPAddress.TryParse(host, out IPAddress ip))
+            if (IPAddress.TryParse(host, out IPAddress tempIp))
             {
                 return true;
             }
@@ -79,12 +79,7 @@ namespace TCPChatroomClient
             return false;
         }
 
-        public void ThrowPopup(string messageBoxText, string captionText)
-        {
-            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
-        }
-
-        private void TryConnection(IPAddress host, int port)
+        private async Task TryConnection(IPAddress host, int port)
         {
             try
             {
@@ -92,7 +87,17 @@ namespace TCPChatroomClient
 
                 if (mainWindow != null)
                 {
-                    mainWindow.StartConnection(host, port);
+                    if(await mainWindow.StartConnection(host, port))
+                    {
+                        Close();
+                    }
+                    else
+                    {
+                        string messageBoxText = "Could not connect because server is full!";
+                        string captionText = "Server if full!";
+                        ThrowPopup(messageBoxText, captionText);
+                    }
+
                 }
                 else
                 {
@@ -104,6 +109,11 @@ namespace TCPChatroomClient
             {
                 throw new Exception($"Error: {ex.Message}");
             }
+        }
+
+        public void ThrowPopup(string messageBoxText, string captionText)
+        {
+            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
         }
     }
 

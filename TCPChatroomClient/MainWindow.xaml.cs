@@ -24,10 +24,6 @@ namespace TCPChatroomClient
         private MessageHandler _handler;
         public bool _connected = false;
 
-        private MessageBoxButton _button = MessageBoxButton.OK;
-        private MessageBoxImage _warningIcon = MessageBoxImage.Warning;
-        private MessageBoxResult _result;
-
         ServerConnectWindow serverConnectWindow = new ServerConnectWindow();
         UsernameSelectWindow userSelectWindow = new UsernameSelectWindow();
 
@@ -40,8 +36,9 @@ namespace TCPChatroomClient
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
+
             serverConnectWindow.Owner = this;
-            serverConnectWindow.ShowDialog();
+            serverConnectWindow.Show();
 
             //Change ConnectBtn to DisconnectBtn
         }
@@ -51,44 +48,20 @@ namespace TCPChatroomClient
 
         }
 
-        public async Task StartConnection(IPAddress host, int port)
+        public async Task<bool> StartConnection(IPAddress host, int port)
         {
             await _clientData.ConnectClient(host, port);
+            await _handler.SendMessage(ServerCommands.userConnectedMessage);
 
-            if(await CheckServerCapacity())
+            MessageData messageData = await _handler.ReceiveMessage();
+
+            if (messageData.message == ServerCommands.joinedServerMessage)
             {
-                //start loop to recieve messages
-                DisplayAllUsers();
-                await WaitMessageLoop();
-            }
-            else
-            {
-                //throw popup that server is at capactiy
-            }
-
-        }
-
-        private async Task<bool> CheckServerCapacity()
-        {
-            MessageData message = await _handler.ReceiveMessage();
-
-            //Message will be either a UserMessage or a ServerMessage
-            //at this stage if it is a ServerMessage it can only be a MaxCapacity Message
-            if (message.message == ServerCommands.joinedServerMessage)
-            {
-                userSelectWindow.Owner = this;
-                userSelectWindow.ShowDialog();
-                serverConnectWindow.Close();
+                CheckServerMessage(messageData.message);
                 return true;
             }
             else
             {
-                //User will not be able to connect to the server so remove it from the stream and allow the user to try to connect rto a different server
-                _clientData.DisconnectClient();
-
-                string messageBoxText = "Could not connect because server is full!";
-                string captionText = "Server if full!";
-                serverConnectWindow.ThrowPopup(messageBoxText, captionText);
                 return false;
             }
         }
@@ -97,9 +70,11 @@ namespace TCPChatroomClient
         {
             while (true)
             {
+                Debug.WriteLine("WAITING FOR MESSAGE");
                 MessageData messageData = await _handler.ReceiveMessage();
                 if (_handler.CheckMessageType(messageData))
                 {
+                    Debug.WriteLine($"SERVER MESSAGE: {messageData.message}");
                     //check what type of message it is and respond accordingly
                     CheckServerMessage(messageData.message);
                 }
@@ -115,25 +90,42 @@ namespace TCPChatroomClient
         {
             switch (message)
             {
+                case ServerCommands.joinedServerMessage:
+                    Debug.WriteLine("CLOSING SERVER CONNECTION::OPENING USERNAME SELECTION");
+                    userSelectWindow.Owner = this;
+                    userSelectWindow.Show();
+                    break;
+
+                case ServerCommands.serverCapacityMessage:
+                    //User will not be able to connect to the server so remove it from the stream and allow the user to try to connect rto a different server
+                    _clientData.DisconnectClient();
+                    break;
+
                 case ServerCommands.disconnectMessage:
                     _clientData.DisconnectClient();
                     break;
-                case ServerCommands.nameTakenMessage:
-                    //throw messagebox on username select screen
-                    if (userSelectWindow.IsActive)
-                    {
-                        userSelectWindow.TryDifferentNamePopUp();
-                    }
-                    break;
-                case ServerCommands.nameConfirmMessage:
-                    //allow username select screen to continue
-                    break;
+
                 case ServerCommands.messageFailedMessage:
                     //throw messagebox that tells user could not send their message
                     break;
+
                 default:
                     Debug.WriteLine("Something failed server side");
                     break;
+            }
+        }
+        public async Task<bool> TryUsername(string username)
+        {
+            await _handler.SendMessage(username);
+            MessageData messageData = await _handler.ReceiveMessage();
+
+            if (messageData.message == ServerCommands.nameConfirmMessage)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

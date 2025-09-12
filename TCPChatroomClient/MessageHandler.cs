@@ -32,8 +32,6 @@ namespace TCPChatroomClient
 
                 message = message.Deserialize(data, bytes);
 
-                Debug.WriteLine(message.message);
-
                 return message;
             }
             catch (IOException ex)
@@ -46,7 +44,7 @@ namespace TCPChatroomClient
 
         public async Task SendMessage(string message)
         {
-            MessageData data = new MessageData(ServerCommands.userMessage, userData, message);
+            MessageData data = new MessageData(ServerCommands.userMessage, userData.name, message);
             byte[] messageToSend = data.Serialize();
 
             await userData.clientStream.WriteAsync(messageToSend, 0, messageToSend.Length);

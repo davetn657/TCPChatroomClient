@@ -25,28 +25,26 @@ namespace TCPChatroomClient
         private MessageBoxButton _button = MessageBoxButton.OK;
         private MessageBoxImage _warningIcon = MessageBoxImage.Warning;
         private MessageBoxResult _result;
-        MainWindow _mainWindow;
-        ClientData _clientData;
-        MessageHandler _messageHandler;
 
         public UsernameSelectWindow()
         {
             InitializeComponent();
-            _mainWindow = this.Owner as MainWindow;
-            _clientData = _mainWindow._clientData;
-            _messageHandler = _clientData.messageHandler;
         }
 
-        private void JoinBtn_Click(object sender, RoutedEventArgs e)
+        private async void JoinBtn_Click(object sender, RoutedEventArgs e)
         {
             //Send the username to the server and wait for response.
+            MainWindow? mainWindow = Owner as MainWindow;
             string username = UsernameText.Text;
-            Task.Run(() => TryUsername(username));
-        }
 
-        private async Task TryUsername(string username)
-        {
-            await _messageHandler.SendMessage(username);
+            if(await mainWindow.TryUsername(username))
+            {
+                Close();
+            }
+            else
+            {
+                TryDifferentNamePopUp();
+            }
         }
 
         public void TryDifferentNamePopUp()
@@ -54,7 +52,7 @@ namespace TCPChatroomClient
             string messageBoxText = "Username not valid. Try a different one";
             string captionText = "Username taken!";
 
-            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.Yes);
+            _result = MessageBox.Show(messageBoxText, captionText, _button, _warningIcon, MessageBoxResult.OK);
         }
     }
 }

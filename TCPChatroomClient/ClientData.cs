@@ -10,7 +10,7 @@ namespace TCPChatroomClient
     {
         public string name { get; set; }
         public TcpClient client { get; set; }
-        public NetworkStream clientStream { get; set; }
+        public NetworkStream? clientStream { get; set; }
         public MessageHandler messageHandler { get; set; }
 
         public ClientData()
@@ -41,9 +41,10 @@ namespace TCPChatroomClient
             {
                 Debug.WriteLine($"HOST:{host} PORT:{port}");
                 await client.ConnectAsync(host, port);
-                using NetworkStream stream = client.GetStream();
-                clientStream = stream;
-
+                if(client.Connected)
+                {
+                    clientStream = client.GetStream();
+                }
             }
             catch (Exception ex)
             {
