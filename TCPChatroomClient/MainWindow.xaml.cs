@@ -47,9 +47,16 @@ namespace TCPChatroomClient
             //Change ConnectBtn to DisconnectBtn
         }
 
-        private void SendBtn_Click(object sender, RoutedEventArgs e)
+        private async void SendBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            if (_clientData.clientStream != null)
+            {
+                await _handler.SendMessage($"{_clientData.name}: {MessageText.Text}");
+            }
+            else
+            {
+                //throw a messagebox that the user is not connected to a server
+            }
         }
 
         public async Task<bool> StartConnection(IPAddress host, int port)
@@ -132,6 +139,7 @@ namespace TCPChatroomClient
 
             if (messageData.messageType == ServerCommands.nameConfirmMessage)
             {
+                _clientData.name = username;
                 return true;
             }
             else
