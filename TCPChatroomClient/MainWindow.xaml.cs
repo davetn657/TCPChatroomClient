@@ -34,7 +34,7 @@ namespace TCPChatroomClient
         public MainWindow()
         {
             InitializeComponent();
-            _clientData = new ClientData("temp");
+            _clientData = new ClientData("Temp");
             _handler = _clientData.messageHandler;
         }
 
@@ -55,13 +55,13 @@ namespace TCPChatroomClient
         public async Task<bool> StartConnection(IPAddress host, int port)
         {
             await _clientData.ConnectClient(host, port);
-            await _handler.SendUserCommand(ServerCommands.userConnectedMessage);
+            await _handler.SendUserCommand(ServerCommands.userConnectedMessage, "Connected");
 
             MessageData messageData = await _handler.ReceiveMessage();
 
-            if (messageData.message == ServerCommands.joinedServerMessage)
+            if (messageData.messageType == ServerCommands.joinedServerMessage)
             {
-                CheckServerMessage(messageData.message);
+                await CheckServerMessage(messageData);
                 return true;
             }
             else
@@ -70,37 +70,33 @@ namespace TCPChatroomClient
             }
         }
 
-        public async Task StartMessageLoop()
-        {
-            await WaitMessageLoop();
-        }
-
-        private async Task WaitMessageLoop()
+        public async Task WaitMessageLoop()
         {
             while (true)
             {
                 Debug.WriteLine("WAITING FOR MESSAGE");
                 MessageData messageData = await _handler.ReceiveMessage();
-                if (_handler.CheckMessageType(messageData))
+
+                if (_handler.CheckIfServerMessage(messageData))
                 {
                     Debug.WriteLine($"SERVER MESSAGE: {messageData.message}");
                     //check what type of message it is and respond accordingly
-                    CheckServerMessage(messageData.message);
+                    await CheckServerMessage(messageData);
                 }
                 else
                 {
                     //display message on chatlog as it will be a user message
+                    ChatLog.Text += messageData.message + "\n";
                 }
 
             }
         }
 
-        private void CheckServerMessage(string message)
+        private async Task CheckServerMessage(MessageData messageData)
         {
-            switch (message)
+            switch (messageData.messageType)
             {
                 case ServerCommands.joinedServerMessage:
-                    Debug.WriteLine("CLOSING SERVER CONNECTION::OPENING USERNAME SELECTION");
                     userSelectWindow.Owner = this;
                     userSelectWindow.Show();
                     break;
@@ -122,20 +118,19 @@ namespace TCPChatroomClient
                     break;
 
                 case ServerCommands.sendingAllConnectedMessage:
-                    DisplayAllUsers();
-                    Task.Run(() => _handler.SendUserCommand(ServerCommands.acceptAllConnectedMessage));
+                    await _handler.SendUserCommand(ServerCommands.acceptAllConnectedMessage, "Accepting Usernames");
+                    DisplayAllUsers(messageData.message);
                     break;
                 default:
-                    Debug.WriteLine("Something failed server side");
                     break;
             }
         }
         public async Task<bool> TryUsername(string username)
         {
-            await _handler.SendUserCommand(username);
+            await _handler.SendUserCommand(ServerCommands.userMessage, username);
             MessageData messageData = await _handler.ReceiveMessage();
 
-            if (messageData.message == ServerCommands.nameConfirmMessage)
+            if (messageData.messageType == ServerCommands.nameConfirmMessage)
             {
                 return true;
             }
@@ -145,10 +140,9 @@ namespace TCPChatroomClient
             }
         }
 
-        private async void DisplayAllUsers()
+        private void DisplayAllUsers(string message)
         {
-            MessageData message = await _handler.ReceiveMessage();
-            string allUser = message.message;
+            string allUser = message;
             string[] users = allUser.Split(',');
 
             foreach (string user in users)

@@ -50,9 +50,10 @@ namespace TCPChatroomClient
             await userData.clientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
         }
 
-        public async Task SendUserCommand(string message)
+        public async Task SendUserCommand(string messageType, string message)
         {
-            MessageData data = new MessageData(ServerCommands.userMessage, ServerCommands.userCommand, message);
+            Debug.WriteLine("SENDING USER COMMAND: " + messageType);
+            MessageData data = new MessageData(messageType, userData.name, message);
             byte[] messageToSend = data.Serialize();
 
             await userData.clientStream.WriteAsync(messageToSend, 0, messageToSend.Length);
@@ -63,9 +64,9 @@ namespace TCPChatroomClient
             await this.SendMessage(ServerCommands.disconnectMessage);
         }
 
-        public bool CheckMessageType(MessageData message)
+        public bool CheckIfServerMessage(MessageData message)
         {
-            if(message.messageType == ServerCommands.serverMessage)
+            if(ServerCommands.commandMessages.Contains(message.messageType))
             {
                 return true;
             }

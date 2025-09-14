@@ -40,7 +40,7 @@ namespace TCPChatroomClient
             if(await mainWindow.TryUsername(username))
             {
                 Close();
-                await mainWindow.StartMessageLoop();
+                await mainWindow.WaitMessageLoop();
             }
             else
             {
