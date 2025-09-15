@@ -128,6 +128,10 @@ namespace TCPChatroomClient
                     await _handler.SendUserCommand(ServerCommands.acceptAllConnectedMessage, "Accepting Usernames");
                     DisplayAllUsers(messageData.message);
                     break;
+
+                case ServerCommands.userConnectedMessage:
+                    ConnectedUsers.Text += $"{messageData.message}\n";
+                    break;
                 default:
                     break;
             }
