@@ -47,6 +47,16 @@ namespace TCPChatroomClient
             //Change ConnectBtn to DisconnectBtn
         }
 
+        private void DisconnectBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectBtn.Visibility = Visibility.Visible;
+            ConnectBtn.IsEnabled = true;
+            DisconnectBtn.Visibility = Visibility.Hidden;
+            DisconnectBtn.IsEnabled = false;
+
+            _clientData.DisconnectClient();
+        }
+
         private async void SendBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_clientData.clientStream != null)
@@ -130,7 +140,10 @@ namespace TCPChatroomClient
                     break;
 
                 case ServerCommands.userConnectedMessage:
-                    ConnectedUsers.Text += $"{messageData.message}\n";
+                    if (messageData.message != _clientData.name)
+                    {
+                        ConnectedUsers.Text += $"{messageData.message}\n";
+                    }
                     break;
                 default:
                     break;
@@ -162,5 +175,7 @@ namespace TCPChatroomClient
                 ConnectedUsers.Text += $"{user}\n";
             }
         }
+
+        
     }
 }

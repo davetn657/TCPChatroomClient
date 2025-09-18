@@ -40,6 +40,11 @@ namespace TCPChatroomClient
             if(await mainWindow.TryUsername(username))
             {
                 Close();
+                mainWindow.ConnectBtn.Visibility = Visibility.Hidden;
+                mainWindow.ConnectBtn.IsEnabled = false;
+                mainWindow.DisconnectBtn.Visibility = Visibility.Visible;
+                mainWindow.DisconnectBtn.IsEnabled = true;
+
                 await mainWindow.WaitMessageLoop();
             }
             else

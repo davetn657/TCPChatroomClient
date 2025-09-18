@@ -8,11 +8,12 @@
         Title="MainWindow" Height="460" Width="610"
         >
     <Grid HorizontalAlignment="Center" Width="610">
-        <TextBox Name="ConnectedUsers" Height="380" Width="160" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,20,0,0"></TextBox>
-        <Button Name="ConnectBtn" Content="Connect" Height="20" Width="160" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="12,0,0,15" Click="ConnectBtn_Click"></Button>
+        <TextBox Name="ConnectedUsers" Height="380" Width="160" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,20,0,0" IsReadOnly="True"></TextBox>
+        <Button Name="ConnectBtn" Content="Connect" Height="20" Width="160" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="12,0,0,15" Click="ConnectBtn_Click" IsEnabled="True"></Button>
+        <Button Name="DisconnectBtn" Content="Disconnect" Height="20" Width="160" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="12,0,0,15" IsEnabled="False" Visibility="Hidden" Click="DisconnectBtn_Click"></Button>
 
-        <TextBox Name="ChatLog" Height="380" Width="400" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,22,0"></TextBox>
+        <TextBox Name="ChatLog" Height="380" Width="400" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,22,0" IsReadOnly="True"></TextBox>
         <TextBox Name="MessageText" Height="20" Width="310" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="188,0,0,15"></TextBox>
-        <Button Name="SendBtn" Content="Send" Height="20" Width="80" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,22,15" Click="SendBtn_Click"></Button>
+        <Button Name="SendBtn" Content="Send" Height="20" Width="80" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,22,15" Click="SendBtn_Click" IsEnabled="False"></Button>
     </Grid>
 </Window>
